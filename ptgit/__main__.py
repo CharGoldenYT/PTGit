@@ -170,7 +170,21 @@ if (Path(fullPath).exists()):
     import shutil
     shutil.rmtree(fullPath)
 
-repo = Repo.clone_from(URL, fullPath, showProg)
+if (branch == ""):
+    repo = Repo.clone_from(URL, fullPath, showProg)
+else:
+    git_process = run(["git", 'clone', '-b', branch, '--single-branch', URL, fullPath])
+
+    while git_process.returncode is None:
+        from time import sleep
+        if (curOS == "WINDOWS"):
+            os.system("cls")
+        else:
+            os.system("clear")
+
+        print(git_process.stdout.read())
+
+        sleep(0.01)
 
 zip_path = fullPath + "/" + packName + ".zip"
 
@@ -187,7 +201,7 @@ if curOS == "WINDOWS":
         else:
             os.system("clear")
 
-        print(zip_path.stdout.read())
+        print(zip_process.stdout.read())
 
         sleep(0.01)
 
@@ -202,7 +216,7 @@ else:
         else:
             os.system("clear")
 
-        print(zip_path.stdout.read())
+        print(zip_process.stdout.read())
 
         sleep(0.01)
 
