@@ -3,6 +3,9 @@ requires = ["hatchling >= 1.26"]
 build-backend = "hatchling.build"
 
 [project]
+dependencies= [
+    "gitpython"
+]
 name="ptgit"
 version="1.0.0"
 authors=[{name="CharGoldenYT", email=""}]
