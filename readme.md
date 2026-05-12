@@ -3,22 +3,16 @@
 PTGit (Pip through Git) is an alternative pip install method that allows you to install python packages directly through a git repository
 
 
-## Adding better compatibility with this tool
-
-If you would like the tool to be able to run smoother with YOUR project, simply include a built package with the following structure in your project
-
-```
-Root
-|
-|   packaged
-|
-|___    pgit.tar.gz
-|
-|___    pgit_details.whl (optional)
-```
-
 ## Useage
 
-`python -m ptgit packagename sourceURL`
+`python - mptgit packagename packageURL <arguments> - Install a package from git.`
 
-Installs `packagename` from `sourceURL`
+Arguments:
+
+`--help`:                              Displays the help message
+
+`--branch="branchName"`:               Determines which branch to install from (Currently does not do anythng)
+
+`--autoinstall="[<packagenames>]"`:    calls pip to install these packages if they are not included as a requirement in the package's repo (Currently does not do anythng)
+
+`--config`:                            starts the configuration script
