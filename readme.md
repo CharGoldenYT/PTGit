@@ -5,7 +5,7 @@ PTGit (Pip through Git) is an alternative pip install method that allows you to 
 
 ## Useage
 
-`python - mptgit packagename packageURL <arguments> - Install a package from git.`
+`python -m ptgit packagename packageURL <arguments> - Install a package from git.`
 
 Arguments:
 
