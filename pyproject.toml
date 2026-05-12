@@ -7,7 +7,7 @@ dependencies= [
     "gitpython"
 ]
 name="ptgit"
-version="1.0.0"
+version="1.1.0"
 authors=[{name="CharGoldenYT", email=""}]
 description="Pip Through Git is a way to install python packages through git."
 readme="README.md"
