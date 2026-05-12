@@ -2,9 +2,8 @@ import sys
 import os
 from typing import Any
 from urllib.parse import urlparse as parse
-from  .__configReader__ import readConfigFile, setConfig, checkOS
-from zipfile import ZipFile
-from subprocess import Popen
+from __configReader__ import readConfigFile, setConfig, checkOS
+from subprocess import run
 from pathlib import Path
 from git import Repo
 
@@ -119,9 +118,9 @@ curOS = checkOS()
 path = ""
 
 if (curOS == "WINDOWS"):
-    path += os.environ["LOCALAPPDATA"]
+    path += os.getenv("LOCALAPPDATA")
 else:
-    path += os.environ["HOME"]
+    path += os.getenv("HOME")
 
 def showProg(op_code, cur_count, max_count=None, message=''):
     finalStr = ""
@@ -165,30 +164,51 @@ def showProg(op_code, cur_count, max_count=None, message=''):
 
 
 
-repo = Repo.clone_from(URL, path + "/Temp_ptgit/" + packName, showProg)
 fullPath = path + "/Temp_ptgit/" + packName
-packPath = fullPath
-global wasFound
-wasFound = False
 
-for folder in os.listdir(fullPath):
-    if (os.path.isfile(folder)):
-        continue
-    for item in os.listdir(fullPath + folder):
-        if (item == "__init__.py"):
-            packPath += "/" + item
-            wasFound = True
-            break
-    if (wasFound):
-        break
+if (Path(fullPath).exists()):
+    import shutil
+    shutil.rmtree(fullPath)
+
+repo = Repo.clone_from(URL, fullPath, showProg)
 
 zip_path = fullPath + "/" + packName + ".zip"
 
-zip = ZipFile(zip_path, "x")
-zip.write(fullPath)
-zip.close()
+print(f'zip {zip_path} {os.curdir}')
+os.chdir(fullPath)
+if curOS == "WINDOWS":
+    input("You MUST have 7zip installed for this command to work, press ENTER to continue")
+    zip_process = run(["7z", "a", "-tzip", zip_path, ".\\"])
 
-process = Popen(f'pip install "{Path(zip_path).resolve().__str__()}"')
+    while zip_process.returncode is None:
+        from time import sleep
+        if (curOS == "WINDOWS"):
+            os.system("cls")
+        else:
+            os.system("clear")
+
+        print(zip_path.stdout.read())
+
+        sleep(0.01)
+
+    print(zip_process.returncode)
+else:
+    zip_process = run(['zip', '-r', zip_path, "./"])
+
+    while zip_process.returncode is None:
+        from time import sleep
+        if (curOS == "WINDOWS"):
+            os.system("cls")
+        else:
+            os.system("clear")
+
+        print(zip_path.stdout.read())
+
+        sleep(0.01)
+
+    print(zip_process.returncode)
+
+process = run(['pip', 'install', Path(zip_path).resolve().__str__()])
 
 while process.returncode is None:
     from time import sleep
@@ -200,3 +220,9 @@ while process.returncode is None:
     print(process.stdout.read())
 
     sleep(0.01)
+
+
+print("Cleaning up!")
+
+import shutil
+shutil.rmtree(path + "/Temp_ptgit/") # Remove any git dirs leftover.
