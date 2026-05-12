@@ -1,40 +1,42 @@
 import os
 import json
 from typing import Any
+from pathlib import Path
 configuration = {"AllowPackagedFiles": False, "IgnoreWarning": False}
 
 def checkOS()->str:
-    if (os.environ.get("HOME") is None):
+    if (os.getenv("HOME") is None):
         return "WINDOWS"
 
     return "UNIX"
 
 def readConfigFile()->configuration:
-    os = checkOS()
+    curOS = checkOS()
     path = ""
-    if (os == "WINDOWS"):
-        path += os.environ["APPDATA"]
+    if (curOS == "WINDOWS"):
+        path += os.getenv("APPDATA")
     else:
-        path += os.environ["HOME"]
-    file = open(path + "/ptgit_config/config.ini", "r")
-    if (file.read().__len__() < 1):
-        file.close()
+        path += os.getenv("HOME")
+    if (not Path(path + "/ptgit_config").exists()):
+        os.mkdir(path + "/ptgit_config")
         writeConfigFile(configuration)
-        file.open(path + "/ptgit_config/config.ini", "r")
-
+    if (not Path(path + '/ptgit_config/config.json').exists()):
+        writeConfigFile(configuration)
+    file = open(path + "/ptgit_config/config.json", "r")
     rawJson = file.read()
+    print(f"RawJson: {rawJson}")
 
-    return json.loads(rawJson)
+    return json.loads(rawJson)["config"]
 
 def writeConfigFile(config:configuration):
-    os = checkOS()
+    curOS = checkOS()
     path = ""
-    if (os == "WINDOWS"):
-        path += os.environ["APPDATA"]
+    if (curOS == "WINDOWS"):
+        path += os.getenv("APPDATA")
     else:
-        path += os.environ["HOME"]
-    file = open(path + "/ptgit_config/config.ini", "w")
-    file.write(json.dump(config))
+        path += os.getenv("HOME")
+    file = open(path + "/ptgit_config/config.json", "w")
+    file.write(json.dumps({"config": config}, indent="\t"))
     file.close()
 
 
