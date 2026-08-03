@@ -2,6 +2,9 @@
 
 PTGit (Pip through Git) is an alternative pip install method that allows you to install python packages directly through a git repository
 
+> [!NOTE]
+> WARNING: make sure you trust a repo before installing python packages, it could be malicious!
+
 
 ## Useage
 
