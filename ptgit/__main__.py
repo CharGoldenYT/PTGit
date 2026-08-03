@@ -2,7 +2,8 @@ import sys
 import os
 from typing import Any
 from urllib.parse import urlparse as parse
-from .__configReader__ import readConfigFile, setConfig, checkOS
+from .__configReader__ import readConfigFile, writeConfigFile, setConfig, checkOS, configuration, default_config
+from .__tomlReader__ import installDependecies
 from subprocess import run
 from pathlib import Path
 from git import Repo
@@ -30,7 +31,6 @@ ptgit packagename packageURL <arguments> - Install a package from git.
 Arguments:
 --help:                             Displays this message
 --branch="branchName"               Determines which branch to install from
---autoinstall="[<packagenames>]"    calls pip to install these packages if they are not included as a requirement in the package's repo
 --config                            starts the configuration script""")
         exit(0)
         
@@ -42,6 +42,10 @@ Arguments:
     print(f"Not a valid argument {base}{arg}! Use --help for information!")
 
 def checkArgs():
+    configFile = readConfigFile()
+    if configFile.AllowPackagedFiles:
+        configFile.AllowPackagedFiles = False # Holdover config.
+        writeConfigFile(configFile)
     arg_array = []
     for item in args:
         if (arg_array.__contains__(item) and ["--branch"].__contains__(item)):
@@ -49,20 +53,42 @@ def checkArgs():
             processArg("help")
         arg_array.append(item)
 
+def parseLoc(loc:str)->str:
+    if loc == default_config.ZipLocation: return "Default Location"
+
+    return loc
+
+def getLoc()->str:
+    config = readConfigFile()
+    if parseLoc(config.ZipLocation) == "Default Location": return "7z"
+
+    return config.ZipLocation
+
 def runConfigScript():
     configFile = readConfigFile()
-    validOptions = {"1": "AllowPackagedFiles"}
-    result = input("From the following options choose one to switch\n1: Allow Potentially Unsafe Pre-Packaged files from git repositories: " + str(configFile["AllowPackagedFiles"]))
+    validOptions = {"1": "ZipLocation"}
+    location = parseLoc(configFile.ZipLocation)
+    finalStr = f"From the following options choose one to configure \n 1 : The 7 Zip install location is currently set to: {location} \n Q : Quit the config script."
+    result = input(finalStr + "\n\n")
 
-    if (result == "1"):
-        setConfig("AllowPackagedFiles", (not configFile["AllowPackagedFiles"]))
+    if (result.lower() == "q"):
+        exit(0)
+
+    if (result.lower() == validOptions["1"] or result == "1"):
+        newLoc = input("Type in the new 7 zip install location, leave blank to set no path, or use _default_ to do the same thing:\n")
+
+        print("Setting Location to " + newLoc)
+        if (newLoc.strip() == ""): newLoc += "_default_"
+        configFile.ZipLocation = newLoc
+        writeConfigFile(configFile)
+        
 
     if (not validOptions.__contains__(result)):
         print("Invalid Option!")
         runConfigScript()
 
-    print("Configuration saved! " + validOptions[result] + " set to " + configFile[validOptions[result]])
-    exit(0)
+    print("Configuration saved! " + validOptions[result] + " set to " + configFile.toDict()[validOptions[result]])
+    runConfigScript() # I know it's recursive but this is neccassary.
 
 args = sys.argv
 if (args[0].endswith(".py") or args[0] == "ptgit"):
@@ -74,12 +100,6 @@ if (args.__contains__("--config")):
 if (args.__len__() < 2):
     print("Invalid number of arguments!")
     processArg("help")
-
-config = readConfigFile()
-if (config["AllowPackagedFiles"]):
-    i = input("WARNING: unsafe switch \"AllowPackagedFiles\" is enabled!\nThis may make it easy for malicious actors to install fake packages that comprimise your system!\nAlways check official sources before installng from a git repo!\nPress ENTER to continue, type IGNORE to permanently remove this warning.")
-    if (i.upper() == "IGNORE"):
-        setConfig("IgnoreWarning", True)
 
 checkArgs()
 
@@ -188,11 +208,16 @@ else:
 
 zip_path = fullPath + "/" + packName + ".zip"
 
+try:
+    installDependecies(fullPath)
+except Exception as e:
+    print(f"Dependencies could not be installed! {e}")
+
 print(f'zip {zip_path} {os.curdir}')
 os.chdir(fullPath)
 if curOS == "WINDOWS":
     input("You MUST have 7zip installed for this command to work, press ENTER to continue")
-    zip_process = run(["7z", "a", "-tzip", zip_path, ".\\"])
+    zip_process = run([getLoc(), "a", "-tzip", zip_path, ".\\"])
 
     while zip_process.returncode is None:
         from time import sleep

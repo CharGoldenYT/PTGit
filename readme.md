@@ -16,6 +16,8 @@ Arguments:
 
 `--branch="branchName"`:               Determines which branch to install from (Currently does not do anythng)
 
-`--autoinstall="[<packagenames>]"`:    calls pip to install these packages if they are not included as a requirement in the package's repo (Currently does not do anythng)
-
 `--config`:                            starts the configuration script
+
+Configuration:
+
+`ZipLocation` :                        Where your install of 7-zip is, specifying this may fix any problems where it cannot find 7zip
